@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_socketio import SocketIO, emit
 import numpy as np
 from numba import njit
@@ -8,9 +8,9 @@ from skimage import restoration
 import os
 import time
 from io import BytesIO
-from flask_cors import CORS
+from flask_cors import CORS 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="dist", static_url_path="/../frontend/")
 # Configure CORS with specific origins
 CORS(app, resources={
     r"/*": {
@@ -28,6 +28,17 @@ socketio = SocketIO(
     cors_allowed_origins=["http://localhost:3000", "http://127.0.0.1:3000","http://127.0.0.1:5173"],
     async_mode='threading'
 )
+
+@app.route('/')
+def serve_vue_app():
+    """Serve the main Vue index.html"""
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/<path:path>')
+def serve_static_files(path):
+    """Serve other static files like JS, CSS, images"""
+    return send_from_directory(app.static_folder, path)
+
 
 # Optimized energy calculation using Numba
 @njit
