@@ -3,14 +3,14 @@ import vue from "@vitejs/plugin-vue";
 
 export default defineConfig({
   plugins: [vue()],
-  server: {
-    proxy: {
-      "/compress": {
-        target: "http://127.0.0.1:5000",
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/compress/, "/compress"),
-      },
-    },
-  },
+  // server: {
+  //   proxy: {
+  //     "/compress": {
+  //       target: "http://127.0.0.1:5000",
+  //       changeOrigin: true,
+  //       secure: false,
+  //       rewrite: (path) => path.replace(/^\/compress/, "/compress"),
+  //     },
+  //   },
+  // },
 });
