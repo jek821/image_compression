@@ -308,7 +308,7 @@ body {
 
 .compressed-image {
   max-width: 100%;
-  max-height: 400px; /* Adjust as needed */
+  max-height: 400px; 
   object-fit: contain;
 }
 
