@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "cd frontend && pnpm install && pnpm build && mv dist ../backend/dist && cd ../backend && pipenv install --deploy --ignore-pipfile && cd ..",
-    "start": "cd backend && python app.py"
+    "start": "cd backend && pipenv run gunicorn -k gevent -w 1 app:app"
   },
   "keywords": [],
   "author": "",
