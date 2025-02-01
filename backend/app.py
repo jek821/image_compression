@@ -19,32 +19,18 @@ app = Flask(__name__, static_folder="dist", static_url_path="/")
 
 
 # Allow all origins in development, restrict in production
-if os.getenv("FLASK_ENV") == "development":
-    CORS(
-        app,
-        resources={
-            r"/*": {
-                "origins": "*",  # Allow all origins in development
-                "methods": ["GET", "POST", "OPTIONS"],
-                "allow_headers": ["Content-Type", "Accept"],
-                "supports_credentials": True,
-                "expose_headers": ["final-width", "final-height", "original-size", "final-size"],
-            }
+CORS(
+    app,
+    resources={
+        r"/*": {
+            "origins": ["https://dynamic-image-compression.onrender.com"],  # Restrict to production frontend URL
+            "methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Accept"],
+            "supports_credentials": True,
+            "expose_headers": ["final-width", "final-height", "original-size", "final-size"],
         }
-    )
-else:
-    CORS(
-        app,
-        resources={
-            r"/*": {
-                "origins": ["https://dynamic-image-compression.onrender.com"],  # Restrict to production frontend URL
-                "methods": ["GET", "POST", "OPTIONS"],
-                "allow_headers": ["Content-Type", "Accept"],
-                "supports_credentials": True,
-                "expose_headers": ["final-width", "final-height", "original-size", "final-size"],
-            }
-        }
-    )
+    }
+)
 
 # Configure SocketIO with CORS for both local and deployed environments
 socketio = SocketIO(
@@ -351,4 +337,5 @@ def compress():
 
 if __name__ == "__main__":
     print("Starting Flask app with WebSocket support...")
-    socketio.run(app, debug=True, host="0.0.0.0", port=5000, allow_unsafe_werkzeug=True)
+    port = int(os.environ.get('PORT', 5000))
+    socketio.run(app, debug=True, host="0.0.0.0", port=port, allow_unsafe_werkzeug=True)
