@@ -17,20 +17,34 @@ import os
 
 app = Flask(__name__, static_folder="dist", static_url_path="/")
 
-# Allow local development AND production URLs
-CORS(app, resources={
-    r"/*": {
-        "origins": [
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-            "http://127.0.0.1:5173",
-            "https://dynamic-image-compression.onrender.com"  # Add your Render backend URL
-        ],
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Accept"],
-        "supports_credentials": True
-    }
-}, expose_headers=["final-width", "final-height", "original-size", "final-size"])
+
+# Allow all origins in development, restrict in production
+if os.getenv("FLASK_ENV") == "development":
+    CORS(
+        app,
+        resources={
+            r"/*": {
+                "origins": "*",  # Allow all origins in development
+                "methods": ["GET", "POST", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Accept"],
+                "supports_credentials": True,
+                "expose_headers": ["final-width", "final-height", "original-size", "final-size"],
+            }
+        }
+    )
+else:
+    CORS(
+        app,
+        resources={
+            r"/*": {
+                "origins": ["https://dynamic-image-compression.onrender.com"],  # Restrict to production frontend URL
+                "methods": ["GET", "POST", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Accept"],
+                "supports_credentials": True,
+                "expose_headers": ["final-width", "final-height", "original-size", "final-size"],
+            }
+        }
+    )
 
 # Configure SocketIO with CORS for both local and deployed environments
 socketio = SocketIO(
@@ -39,9 +53,9 @@ socketio = SocketIO(
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
-        "https://dynamic-image-compression.onrender.com"  # Allow deployed frontend to connect
+        "https://dynamic-image-compression.onrender.com",
     ],
-    async_mode='threading'
+    async_mode='gevent',  # Use 'gevent' for async support
 )
 
 
@@ -278,15 +292,18 @@ def compress():
     try:
         print("Received compression request")
         if 'file' not in request.files:
+            print("No file provided")
             return jsonify({'error': 'No file provided'}), 400
         
         if 'reduction_percentage' not in request.form:
+            print("No reduction_percentage provided")
             return jsonify({'error': 'No reduction_percentage provided'}), 400
 
         file = request.files['file']
         reduction_percentage = int(request.form['reduction_percentage'])
 
         if not (0 <= reduction_percentage <= 100):
+            print("Invalid reduction_percentage")
             return jsonify({'error': 'reduction_percentage must be between 0 and 100'}), 400
 
         # Read the file content once and store it in a variable
@@ -331,7 +348,7 @@ def compress():
     except Exception as e:
         print(f"Error in compress endpoint: {str(e)}")
         return jsonify({'error': str(e)}), 500
-    
+
 if __name__ == "__main__":
     print("Starting Flask app with WebSocket support...")
     socketio.run(app, debug=True, host="0.0.0.0", port=5000, allow_unsafe_werkzeug=True)
