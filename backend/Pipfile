@@ -9,6 +9,8 @@ numpy = "*"
 scipy = "*"
 pillow = "*"
 flask-cors = "*"
+flask-socketio = "*"
+numba = "*"
 
 [dev-packages]
 
