@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "cd frontend && pnpm install && pnpm build && cd ../backend && pip install",
+    "build": "cd frontend && pnpm install && pnpm build && cd ../backend && pip install pipenv && pipenv install && cd ..",
     "start": "cd backend && python app.py"
   },
   "keywords": [],
