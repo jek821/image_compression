@@ -36,7 +36,7 @@ CORS(
 socketio = SocketIO(
     app,
     cors_allowed_origins=[
-        "*",
+        "https://dynamic-image-compression.onrender.com",
     ],
     async_mode='gevent',  # Use 'gevent' for async support
 )
