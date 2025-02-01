@@ -160,7 +160,7 @@ const MAX_HEIGHT = 800; // Adjust as needed
 
 // Initialize WebSocket connection
 onMounted(() => {
-  socket.value = io("http://127.0.0.1:5000"); // Connect to the WebSocket server
+  socket.value = io("https://dynamic-image-compression.onrender.com"); // Connect to the WebSocket server
 
   socket.value.on("progress", (data) => {
     progress.value = data.progress; // Update progress

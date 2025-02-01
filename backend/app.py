@@ -10,24 +10,41 @@ import time
 from io import BytesIO
 from flask_cors import CORS 
 
-app = Flask(__name__, static_folder="dist", static_url_path="/../frontend/")
-# Configure CORS with specific origins
+from flask import Flask, send_from_directory
+from flask_cors import CORS
+from flask_socketio import SocketIO
+import os
+
+app = Flask(__name__, static_folder="dist", static_url_path="/")
+
+# Allow local development AND production URLs
 CORS(app, resources={
     r"/*": {
-        "origins": ["http://localhost:3000", "http://127.0.0.1:3000","http://127.0.0.1:5173"],
+        "origins": [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5173",
+            "https://dynamic-image-compression.onrender.com"  # Add your Render backend URL
+        ],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type", "Accept"],
         "supports_credentials": True
     }
-},
-expose_headers=["final-width", "final-height", "original-size", "final-size"])
+}, expose_headers=["final-width", "final-height", "original-size", "final-size"])
 
-# Configure SocketIO with CORS
+# Configure SocketIO with CORS for both local and deployed environments
 socketio = SocketIO(
     app,
-    cors_allowed_origins=["http://localhost:3000", "http://127.0.0.1:3000","http://127.0.0.1:5173"],
+    cors_allowed_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        "https://dynamic-image-compression.onrender.com"  # Allow deployed frontend to connect
+    ],
     async_mode='threading'
 )
+
+
 
 @app.route('/')
 def serve_vue_app():

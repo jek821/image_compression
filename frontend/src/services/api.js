@@ -2,7 +2,7 @@ import axios from "axios";
 import FormData from "form-data";
 
 const apiClient = axios.create({
-    baseURL: "http://127.0.0.1:5000",
+    baseURL: "https://dynamic-image-compression.onrender.com",
     headers: {
         "Content-Type": "multipart/form-data",
     },
