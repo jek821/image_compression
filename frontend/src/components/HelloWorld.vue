@@ -184,11 +184,39 @@ const handleFileUpload = (event) => {
   imageFile.value = file;
 
   EXIF.getData(file, function() {
-    const orientation = EXIF.getTag(this, 'Orientation');
+    const orientation = EXIF.getTag(this, 'Orientation') || 1; // Default to 1 if no orientation
+    console.log('Orientation:', orientation); // Debugging
+
+    // Fallback for no rotation needed
+    if (!orientation || orientation === 1) {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+
+      img.onload = () => {
+        // No rotation needed, use the original file
+        imageFile.value = file;
+        originalWidth.value = img.width;
+        originalHeight.value = img.height;
+        imageUploaded.value = true;
+        originalSize.value = 0;
+        compressedSize.value = 0;
+        updateCompressedDimensions();
+      };
+
+      img.onerror = (error) => {
+        console.error('Failed to load image:', error); // Debugging
+      };
+
+      return; // Exit the function early
+    }
+
+    // If orientation requires rotation, proceed with canvas operations
     const img = new Image();
     img.src = URL.createObjectURL(file);
 
     img.onload = () => {
+      console.log('Image dimensions:', img.width, img.height); // Debugging
+
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
 
@@ -233,6 +261,11 @@ const handleFileUpload = (event) => {
 
       // Convert the canvas back to a Blob
       canvas.toBlob((blob) => {
+        if (!blob) {
+          console.error('Failed to create blob from canvas'); // Debugging
+          return;
+        }
+
         const correctedFile = new File([blob], file.name, { type: file.type });
 
         // Update the imageFile with the corrected file
@@ -246,6 +279,10 @@ const handleFileUpload = (event) => {
         compressedSize.value = 0;
         updateCompressedDimensions();
       }, file.type);
+    };
+
+    img.onerror = (error) => {
+      console.error('Failed to load image:', error); // Debugging
     };
   });
 };
