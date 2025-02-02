@@ -182,8 +182,6 @@ onUnmounted(() => {
   }
 });
 
-import { ref } from 'vue';
-
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const imageFile = ref(null);
 const originalWidth = ref(0);
