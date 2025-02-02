@@ -181,6 +181,8 @@ const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (!file) return;
 
+  console.log('File selected:', file.name); // Debugging
+
   imageFile.value = file;
 
   EXIF.getData(file, function() {
@@ -193,6 +195,8 @@ const handleFileUpload = (event) => {
       img.src = URL.createObjectURL(file);
 
       img.onload = () => {
+        console.log('Image dimensions (no rotation):', img.width, img.height); // Debugging
+
         // No rotation needed, use the original file
         imageFile.value = file;
         originalWidth.value = img.width;
@@ -215,7 +219,7 @@ const handleFileUpload = (event) => {
     img.src = URL.createObjectURL(file);
 
     img.onload = () => {
-      console.log('Image dimensions:', img.width, img.height); // Debugging
+      console.log('Image dimensions (with rotation):', img.width, img.height); // Debugging
 
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
