@@ -293,21 +293,30 @@ def compress():
 
         # Load the image from the stored content
         img = Image.open(BytesIO(file_content)).convert('RGB')
-
-        # Limit image size to reduce memory usage
-        MAX_RESOLUTION = 1024
-        if img.width > MAX_RESOLUTION or img.height > MAX_RESOLUTION:
-            img.thumbnail((MAX_RESOLUTION, MAX_RESOLUTION))
-
         img_array = np.array(img)
 
-        # Calculate the target dimensions while maintaining aspect ratio
+        # Calculate the target dimensions based on the reduction percentage
         original_height, original_width, _ = img_array.shape
         target_width = int(original_width * (1 - reduction_percentage / 100))
         aspect_ratio = original_height / original_width
         target_height = int(target_width * aspect_ratio)
 
-        # Resize the image while maintaining aspect ratio
+        # Estimate memory usage of the target image
+        # Each pixel in an RGB image uses 3 bytes (1 byte per channel)
+        estimated_memory_usage = target_width * target_height * 3  # in bytes
+
+        # Define a safe memory threshold (e.g., 400 MB to leave room for other operations)
+        SAFE_MEMORY_THRESHOLD = 400 * 1024 * 1024  # 400 MB in bytes
+
+        # If the estimated memory usage exceeds the threshold, resize the image further
+        if estimated_memory_usage > SAFE_MEMORY_THRESHOLD:
+            print("Image exceeds safe memory threshold. Resizing further...")
+            # Calculate the scaling factor to fit within the memory threshold
+            scaling_factor = (SAFE_MEMORY_THRESHOLD / estimated_memory_usage) ** 0.5
+            target_width = int(target_width * scaling_factor)
+            target_height = int(target_height * scaling_factor)
+
+        # Resize the image to the target dimensions
         img_array = resize(img_array, (target_height, target_width), anti_aliasing=True)
         img_array = (img_array * 255).astype(np.uint8)
 
