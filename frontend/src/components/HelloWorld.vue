@@ -67,6 +67,14 @@
               Choose a file or drag it here
             </label>
           </div>
+
+        <div>
+          <input type="file" @change="handleFileUpload" accept="image/*" />
+          <p v-if="isMobile" class="mobile-warning">
+            For the best experience, please upload images from your camera roll instead of taking a new photo.
+          </p>
+        </div>
+
         </div>
 
         <!-- Dimensions Section -->
@@ -174,31 +182,24 @@ onUnmounted(() => {
   }
 });
 
-import EXIF from 'exif-js';
+export default {
+  data() {
+    return {
+      isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+    };
+  },
+  methods: {
+    handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
 
-// Handle file upload
-const handleFileUpload = (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
+      // Use the original file without EXIF or canvas manipulation
+      imageFile.value = file;
 
-  console.log('File selected:', file.name); // Debugging
-
-  imageFile.value = file;
-
-  EXIF.getData(file, function() {
-    const orientation = EXIF.getTag(this, 'Orientation') || 1; // Default to 1 if no orientation
-    console.log('Orientation:', orientation); // Debugging
-
-    // Fallback for no rotation needed
-    if (!orientation || orientation === 1) {
       const img = new Image();
       img.src = URL.createObjectURL(file);
 
       img.onload = () => {
-        console.log('Image dimensions (no rotation):', img.width, img.height); // Debugging
-
-        // No rotation needed, use the original file
-        imageFile.value = file;
         originalWidth.value = img.width;
         originalHeight.value = img.height;
         imageUploaded.value = true;
@@ -210,85 +211,8 @@ const handleFileUpload = (event) => {
       img.onerror = (error) => {
         console.error('Failed to load image:', error); // Debugging
       };
-
-      return; // Exit the function early
-    }
-
-    // If orientation requires rotation, proceed with canvas operations
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
-
-    img.onload = () => {
-      console.log('Image dimensions (with rotation):', img.width, img.height); // Debugging
-
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-
-      // Set canvas dimensions based on orientation
-      if (orientation === 6 || orientation === 8) {
-        canvas.width = img.height;
-        canvas.height = img.width;
-      } else {
-        canvas.width = img.width;
-        canvas.height = img.height;
-      }
-
-      // Rotate the image based on the orientation
-      switch (orientation) {
-        case 2:
-          ctx.transform(-1, 0, 0, 1, img.width, 0);
-          break;
-        case 3:
-          ctx.transform(-1, 0, 0, -1, img.width, img.height);
-          break;
-        case 4:
-          ctx.transform(1, 0, 0, -1, 0, img.height);
-          break;
-        case 5:
-          ctx.transform(0, 1, 1, 0, 0, 0);
-          break;
-        case 6:
-          ctx.transform(0, 1, -1, 0, img.height, 0);
-          break;
-        case 7:
-          ctx.transform(0, -1, -1, 0, img.height, img.width);
-          break;
-        case 8:
-          ctx.transform(0, -1, 1, 0, 0, img.width);
-          break;
-        default:
-          ctx.transform(1, 0, 0, 1, 0, 0);
-      }
-
-      // Draw the image onto the canvas
-      ctx.drawImage(img, 0, 0);
-
-      // Convert the canvas back to a Blob
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          console.error('Failed to create blob from canvas'); // Debugging
-          return;
-        }
-
-        const correctedFile = new File([blob], file.name, { type: file.type });
-
-        // Update the imageFile with the corrected file
-        imageFile.value = correctedFile;
-
-        // Update dimensions and other states
-        originalWidth.value = canvas.width;
-        originalHeight.value = canvas.height;
-        imageUploaded.value = true;
-        originalSize.value = 0;
-        compressedSize.value = 0;
-        updateCompressedDimensions();
-      }, file.type);
-    };
-
-    img.onerror = (error) => {
-      console.error('Failed to load image:', error); // Debugging
-    };
-  });
+    },
+  },
 };
 
 // Update dimensions when compression percentage changes
@@ -634,6 +558,14 @@ body {
   margin-top: 1rem;
   overflow: hidden;
 }
+
+
+.mobile-warning {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
 
 .progress-bar {
   height: 100%;
