@@ -188,6 +188,8 @@ const handleFileUpload = (event) => {
     originalWidth.value = img.width;
     originalHeight.value = img.height;
     imageUploaded.value = true;
+    originalSize.value = 0;
+    compressedSize.value = 0;
     updateCompressedDimensions();
   };
 };
