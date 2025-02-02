@@ -24,7 +24,7 @@ CORS(
     app,
     resources={
         r"/*": {
-            "origins": ["https://dynamic-image-compression.onrender.com", "http://192.168.243.36:3000"],  # Restrict to production frontend URL
+            "origins": ["https://dynamic-image-compression.onrender.com", "http://192.168.243.36:3000", "http://localhost:3000"],  # Restrict to production frontend URL
             "methods": ["GET", "POST", "OPTIONS"],
             "allow_headers": ["Content-Type", "Accept"],
             "supports_credentials": True,
@@ -37,7 +37,7 @@ CORS(
 socketio = SocketIO(
     app,
     cors_allowed_origins=[
-        "https://dynamic-image-compression.onrender.com", "http://192.168.243.36:3000",
+        "https://dynamic-image-compression.onrender.com", "http://192.168.243.36:3000", "http://localhost:3000",
     ],
     async_mode='gevent',  # Use 'gevent' for async support
 )
