@@ -174,6 +174,8 @@ onUnmounted(() => {
   }
 });
 
+import EXIF from 'exif-js';
+
 // Handle file upload
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
@@ -181,17 +183,71 @@ const handleFileUpload = (event) => {
 
   imageFile.value = file;
 
-  const img = new Image();
-  img.src = URL.createObjectURL(file);
+  EXIF.getData(file, function() {
+    const orientation = EXIF.getTag(this, 'Orientation');
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
 
-  img.onload = () => {
-    originalWidth.value = img.width;
-    originalHeight.value = img.height;
-    imageUploaded.value = true;
-    originalSize.value = 0;
-    compressedSize.value = 0;
-    updateCompressedDimensions();
-  };
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // Set canvas dimensions based on orientation
+      if (orientation === 6 || orientation === 8) {
+        canvas.width = img.height;
+        canvas.height = img.width;
+      } else {
+        canvas.width = img.width;
+        canvas.height = img.height;
+      }
+
+      // Rotate the image based on the orientation
+      switch (orientation) {
+        case 2:
+          ctx.transform(-1, 0, 0, 1, img.width, 0);
+          break;
+        case 3:
+          ctx.transform(-1, 0, 0, -1, img.width, img.height);
+          break;
+        case 4:
+          ctx.transform(1, 0, 0, -1, 0, img.height);
+          break;
+        case 5:
+          ctx.transform(0, 1, 1, 0, 0, 0);
+          break;
+        case 6:
+          ctx.transform(0, 1, -1, 0, img.height, 0);
+          break;
+        case 7:
+          ctx.transform(0, -1, -1, 0, img.height, img.width);
+          break;
+        case 8:
+          ctx.transform(0, -1, 1, 0, 0, img.width);
+          break;
+        default:
+          ctx.transform(1, 0, 0, 1, 0, 0);
+      }
+
+      // Draw the image onto the canvas
+      ctx.drawImage(img, 0, 0);
+
+      // Convert the canvas back to a Blob
+      canvas.toBlob((blob) => {
+        const correctedFile = new File([blob], file.name, { type: file.type });
+
+        // Update the imageFile with the corrected file
+        imageFile.value = correctedFile;
+
+        // Update dimensions and other states
+        originalWidth.value = canvas.width;
+        originalHeight.value = canvas.height;
+        imageUploaded.value = true;
+        originalSize.value = 0;
+        compressedSize.value = 0;
+        updateCompressedDimensions();
+      }, file.type);
+    };
+  });
 };
 
 // Update dimensions when compression percentage changes
