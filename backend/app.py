@@ -293,6 +293,12 @@ def compress():
 
         # Load the image from the stored content
         img = Image.open(BytesIO(file_content)).convert('RGB')
+
+        # Limit image size to reduce memory usage
+        MAX_RESOLUTION = 1024
+        if img.width > MAX_RESOLUTION or img.height > MAX_RESOLUTION:
+            img.thumbnail((MAX_RESOLUTION, MAX_RESOLUTION))
+
         img_array = np.array(img)
 
         # Calculate the target dimensions while maintaining aspect ratio
