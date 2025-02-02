@@ -271,35 +271,31 @@ def handle_connect():
 def handle_disconnect():
     print("Client disconnected from WebSocket")
 
+    
+    
 @app.route('/compress', methods=['POST'])
 def compress():
     try:
-        print("Received compression request")
-        if 'file' not in request.files:
-            print("No file provided")
-            return jsonify({'error': 'No file provided'}), 400
-        
-        if 'reduction_percentage' not in request.form:
-            print("No reduction_percentage provided")
-            return jsonify({'error': 'No reduction_percentage provided'}), 400
+        if 'file' not in request.files or 'reduction_percentage' not in request.form:
+            return jsonify({'error': 'Missing file or reduction_percentage'}), 400
 
         file = request.files['file']
         reduction_percentage = int(request.form['reduction_percentage'])
 
         if not (0 <= reduction_percentage <= 100):
-            print("Invalid reduction_percentage")
             return jsonify({'error': 'reduction_percentage must be between 0 and 100'}), 400
 
-        # Read the file content once and store it in a variable
-        file_content = file.read()
+        # Load image directly into memory
+        img = Image.open(file.stream).convert('RGB')
+        img_array = np.array(img)
 
-        # Save temporary file
-        temp_path = "temp_uploaded_image.jpg"
-        with open(temp_path, "wb") as temp_file:
-            temp_file.write(file_content)
+        # Perform compression (this is a simplified example)
+        target_width = int(img_array.shape[1] * (1 - reduction_percentage / 100))
+        img_array = resize(img_array, (img_array.shape[0], target_width), anti_aliasing=True)
+        img_array = (img_array * 255).astype(np.uint8)
 
-        # Compress image
-        compressed_image = compress_image(temp_path, reduction_percentage)
+        # Convert back to image
+        compressed_image = Image.fromarray(img_array)
 
         # Prepare response
         img_io = BytesIO()
@@ -307,13 +303,14 @@ def compress():
         img_io.seek(0)
 
         # Calculate sizes
-        original_size = get_image_size(BytesIO(file_content))  # Use the stored file content
+        original_size = get_image_size(BytesIO(file.read()))  # Read the file content again for size calculation
         final_size = get_image_size(img_io)
 
         # Cleanup
-        os.remove(temp_path)
+        del img_array
+        gc.collect()
 
-        # Prepare response with sizes
+        # Prepare response with headers
         response = send_file(
             img_io,
             mimetype='image/jpeg',
@@ -330,7 +327,6 @@ def compress():
         return response
 
     except Exception as e:
-        print(f"Error in compress endpoint: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
