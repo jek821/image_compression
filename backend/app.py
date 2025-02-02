@@ -9,7 +9,7 @@ import os
 import time
 from io import BytesIO
 from flask_cors import CORS 
-
+import gc
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO
@@ -271,7 +271,7 @@ def handle_connect():
 def handle_disconnect():
     print("Client disconnected from WebSocket")
 
-    
+
     
 @app.route('/compress', methods=['POST'])
 def compress():
