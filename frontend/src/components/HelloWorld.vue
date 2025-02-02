@@ -5,59 +5,7 @@
       <h1>Image Compression by Seam Carving</h1>
     </header>
 
-    <!-- Main Content -->
-    <div class="content">
-      <!-- Main explanation section -->
-      <div class="explanation">
-          <h2>Dynamic Programming: A Systematic Approach to Optimization</h2>
-          <div class="info-section">
-          <h3>Core Concepts</h3>
-          <p>
-            Dynamic programming (DP) is a powerful algorithmic technique that optimizes complex problems by breaking them down into simpler subproblems. It's particularly effective when:
-          </p>
-          <ul class="concept-list">
-            <li>The problem can be divided into <strong>overlapping subproblems</strong>.</li>
-            <li>Solutions to these subproblems can be <strong>stored and reused</strong>.</li>
-            <li>There exists an <strong>optimal substructure</strong>, where the optimal solution contains optimal solutions to its subproblems.</li>
-          </ul>
-        </div>
-
-        <div class="info-section">
-          <h3>From Recursion to Efficiency</h3>
-          <p>
-            Many recursive problems suffer from exponential time complexity, making them impractical for larger inputs. Dynamic programming transforms these inefficient recursive solutions into optimized algorithms through systematic storage and reuse of intermediate results.
-          </p>
-          <p>
-            This approach typically reduces the time complexity from <strong>exponential</strong> to <strong>polynomial</strong>, making it feasible for real-world applications.
-          </p>
-        </div>
-
-        <div class="info-section">
-          <h3>The Power of Memoization</h3>
-          <p>
-            At its core, dynamic programming employs <strong>memoization</strong>—storing the results of expensive function calls and returning the cached result when the same inputs occur again. This technique prevents redundant calculations and dramatically improves performance.
-          </p>
-          <p>
-            The <strong>DP matrix</strong> serves as a structured way to store these intermediate results, enabling efficient solution construction.
-          </p>
-        </div>
-
-        <div class="info-section">
-          <h3>Problem-Solving Framework</h3>
-          <p>
-            To apply dynamic programming effectively, follow this structured approach:
-          </p>
-          <ol class="framework-list">
-            <li><strong>Identify</strong> if the problem has overlapping subproblems.</li>
-            <li><strong>Define</strong> the state (what information we need to solve the subproblem).</li>
-            <li><strong>Formulate</strong> the recurrence relation between states.</li>
-            <li><strong>Determine</strong> the base cases.</li>
-            <li><strong>Decide</strong> the order of computation (bottom-up or top-down).</li>
-          </ol>
-        </div>
-        </div>
-      <!-- Main content -->
-      <div class="main">
+    <div class="main">
         <!-- Upload Section -->
         <div class="upload-section card">
           <h2>Upload an Image</h2>
@@ -138,6 +86,58 @@
         </div>
       </div>
     </div>
+
+    <!-- Main Content -->
+    <div class="content">
+      <!-- Main explanation section -->
+      <div class="explanation">
+          <h2>Dynamic Programming: A Systematic Approach to Optimization</h2>
+          <div class="info-section">
+          <h3>Core Concepts</h3>
+          <p>
+            Dynamic programming (DP) is a powerful algorithmic technique that optimizes complex problems by breaking them down into simpler subproblems. It's particularly effective when:
+          </p>
+          <ul class="concept-list">
+            <li>The problem can be divided into <strong>overlapping subproblems</strong>.</li>
+            <li>Solutions to these subproblems can be <strong>stored and reused</strong>.</li>
+            <li>There exists an <strong>optimal substructure</strong>, where the optimal solution contains optimal solutions to its subproblems.</li>
+          </ul>
+        </div>
+
+        <div class="info-section">
+          <h3>From Recursion to Efficiency</h3>
+          <p>
+            Many recursive problems suffer from exponential time complexity, making them impractical for larger inputs. Dynamic programming transforms these inefficient recursive solutions into optimized algorithms through systematic storage and reuse of intermediate results.
+          </p>
+          <p>
+            This approach typically reduces the time complexity from <strong>exponential</strong> to <strong>polynomial</strong>, making it feasible for real-world applications.
+          </p>
+        </div>
+
+        <div class="info-section">
+          <h3>The Power of Memoization</h3>
+          <p>
+            At its core, dynamic programming employs <strong>memoization</strong>—storing the results of expensive function calls and returning the cached result when the same inputs occur again. This technique prevents redundant calculations and dramatically improves performance.
+          </p>
+          <p>
+            The <strong>DP matrix</strong> serves as a structured way to store these intermediate results, enabling efficient solution construction.
+          </p>
+        </div>
+
+        <div class="info-section">
+          <h3>Problem-Solving Framework</h3>
+          <p>
+            To apply dynamic programming effectively, follow this structured approach:
+          </p>
+          <ol class="framework-list">
+            <li><strong>Identify</strong> if the problem has overlapping subproblems.</li>
+            <li><strong>Define</strong> the state (what information we need to solve the subproblem).</li>
+            <li><strong>Formulate</strong> the recurrence relation between states.</li>
+            <li><strong>Determine</strong> the base cases.</li>
+            <li><strong>Decide</strong> the order of computation (bottom-up or top-down).</li>
+          </ol>
+        </div>
+        </div>  
   </div>
 </template>
 
