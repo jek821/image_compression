@@ -36,14 +36,6 @@
               <span class="dimension-label">Processed Size:</span>
               <span class="dimension-value">{{ compressedWidth }}x{{ compressedHeight }}</span>
             </div>
-            <div class="dimension-item">
-              <span class="dimension-label">Original File Size:</span>
-              <span class="dimension-value">{{ originalSize }}</span>
-            </div>
-            <div class="dimension-item">
-              <span class="dimension-label">Compressed File Size:</span>
-              <span class="dimension-value">{{ compressedSize }}</span>
-            </div>
           </div>
         </div>
 
@@ -76,6 +68,16 @@
         </div>
 
         <!-- Result Section -->
+        <div class="size-section card">
+        <div class="dimension-item">
+              <span class="dimension-label">Original File Size:</span>
+              <span class="dimension-value">{{ originalSize }}</span>
+            </div>
+            <div class="dimension-item">
+              <span class="dimension-label">Compressed File Size:</span>
+              <span class="dimension-value">{{ compressedSize }}</span>
+        </div>
+        </div>
         <div v-if="compressedImageUrl" class="result-section card">
           <h2>Compressed Image</h2>
           <img :src="compressedImageUrl" alt="Compressed Image" class="compressed-image" />
@@ -287,122 +289,80 @@ const downloadCompressedImage = () => {
 </script>
 
 <style scoped>
+/* Base styles */
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: #f4f4f9;
   margin: 0;
   padding: 0;
   color: #1a1a1a;
+  min-height: 100vh;
 }
 
 .container {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem;
 }
 
 .header {
   text-align: center;
-  padding: 2rem;
+  padding: 1.5rem;
   background: linear-gradient(135deg, #6200ea, #7c4dff);
   color: white;
   border-radius: 12px;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 8px rgba(98, 0, 234, 0.15);
 }
 
 .header h1 {
   margin: 0;
-  font-size: 2.5rem;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 800;
 }
 
 .content {
-  display: grid;
-  grid-template-columns: 3fr 1fr;
-  gap: 2rem;
-}
-
-.explanation {
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
-}
-
-.compressed-image {
-  max-width: 100%;
-  max-height: 400px; 
-  object-fit: contain;
-}
-
-.explanation h2 {
-  color: #6200ea;
-  font-size: 1.75rem;
-  margin-bottom: 1.5rem;
-  font-weight: 700;
-}
-
-.info-section {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.info-section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-.info-section h3 {
-  color: #4a4a4a;
-  font-size: 1.25rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.info-section p {
-  line-height: 1.7;
-  color: #666;
-  margin-bottom: 1rem;
-}
-
-.concept-list, .framework-list {
-  margin-left: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.concept-list li, .framework-list li {
-  margin-bottom: 0.5rem;
-  line-height: 1.6;
-  color: #666;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .main {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .card {
   background-color: white;
-  padding: 2rem;
+  padding: 1.5rem;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
 }
 
 .card h2 {
   color: #6200ea;
   font-size: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   font-weight: 600;
+}
+
+/* Upload section */
+.upload-section {
+  margin-bottom: 1rem;
 }
 
 .upload-box {
   border: 2px dashed #6200ea;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem;
   text-align: center;
   background-color: #f8f9fe;
   transition: all 0.3s ease;
@@ -424,16 +384,21 @@ body {
   font-weight: 500;
 }
 
+/* Dimensions section */
+.dimensions-section {
+  margin-bottom: 1rem;
+}
+
 .dimensions-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .dimension-item {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 .dimension-label {
@@ -444,19 +409,39 @@ body {
 
 .dimension-value {
   color: #1a1a1a;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 600;
+}
+
+/* Size section */
+.size-section {
+  width: 250px;
+  padding: 1rem;
+  margin: 1rem auto;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Slider section */
+.slider-section {
+  margin-bottom: 1rem;
 }
 
 .slider-container {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .slider-container label {
   color: #4a4a4a;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 500;
 }
 
@@ -483,13 +468,76 @@ body {
   transform: scale(1.1);
 }
 
+/* Buttons */
+.compress-button, .download-button {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  margin-top: 0.75rem;
+}
+
+.compress-button {
+  background-color: #6200ea;
+  color: white;
+  box-shadow: 0 2px 4px rgba(98, 0, 234, 0.2);
+}
+
+.compress-button:hover {
+  background-color: #7c4dff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(98, 0, 234, 0.3);
+}
+
+.download-button {
+  background-color: #4caf50;
+  color: white;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+}
+
+.download-button:hover {
+  background-color: #66bb6a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(76, 175, 80, 0.3);
+}
+
+.compress-button:disabled, .download-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Progress bar */
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #6200ea, #7c4dff);
+  border-radius: 4px;
+  transition: width 0.3s ease-in-out;
+}
+
+/* Warning messages */
 .warning-message {
   margin-top: 1rem;
   padding: 0.75rem;
-  background-color: #fff3cd; /* Light yellow background */
-  border: 1px solid #ffeeba; /* Yellow border */
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
   border-radius: 8px;
-  color: #856404; /* Dark yellow text */
+  color: #856404;
   font-size: 0.9rem;
   font-weight: 500;
   display: flex;
@@ -497,98 +545,106 @@ body {
   gap: 0.5rem;
 }
 
-.compress-button {
-  background-color: #6200ea;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: 1rem;
-}
-
-.compress-button:hover {
-  background-color: #7c4dff;
-}
-
-.compress-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.download-button {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: 1rem;
-}
-
-.download-button:hover {
-  background-color: #66bb6a;
-}
-
-.download-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.progress-bar-container {
-  width: 100%;
-  height: 10px;
-  background-color: #e0e0e0;
-  border-radius: 5px;
-  margin-top: 1rem;
-  overflow: hidden;
-}
-
-
 .mobile-warning {
   color: red;
   font-weight: bold;
-  margin-top: 10px;
+  margin-top: 0.75rem;
+}
+
+/* Explanation section */
+.explanation {
+  padding: 1.5rem;
+  margin-top: 1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.explanation h2 {
+  color: #4a008c;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  border-bottom: 2px solid #6200ea;
+  padding-bottom: 0.5rem;
+}
+
+.info-section {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f8f9fe;
+}
+
+.info-section:last-child {
+  margin-bottom: 0;
+}
+
+.info-section h3 {
+  color: #2d2d2d;
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+  padding-left: 1rem;
+}
+
+.info-section p {
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.concept-list, .framework-list {
+  margin: 0.75rem 0 0.75rem 1rem;
+}
+
+.concept-list li, .framework-list li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+  color: #333;
+  padding-left: 1rem;
+  position: relative;
 }
 
 
-.progress-bar {
-  height: 100%;
-  background-color: #6200ea;
-  border-radius: 5px;
-  transition: width 0.3s ease;
+
+/* Image styles */
+.compressed-image {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
+/* Media queries */
 @media (max-width: 1024px) {
   .content {
     grid-template-columns: 1fr;
   }
   
   .container {
-    padding: 1rem;
+    padding: 0.75rem;
   }
   
   .header {
-    padding: 1.5rem;
+    padding: 1rem;
   }
   
   .header h1 {
-    font-size: 2rem;
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .size-section {
+    width: 100%;
+    max-width: 250px;
+  }
+  
+  .compress-button, .download-button {
+    width: 100%;
   }
 }
 
@@ -596,5 +652,11 @@ body {
   .dimensions-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>
