@@ -44,22 +44,10 @@ socketio = SocketIO(
 
 
 
-# @app.route('/')
-# def serve_vue_app():
-#     """Serve the main Vue index.html"""
-#     return send_from_directory(app.static_folder, 'index.html')
-
-# @app.route('/<path:path>')
-# def serve_static_files(path):
-#     """Serve other static files like JS, CSS, images"""
-#     return send_from_directory(app.static_folder, path)
 
 
-# Optimized energy calculation using Numba
 @njit
 def calculate_forward_energy_fast(img_array):
-    """Calculate forward energy using Numba for speed."""
-    print("Calculating forward energy...")
     height, width, _ = img_array.shape
     energy_map = np.zeros((height, width))
     weights = np.array([0.299, 0.587, 0.114])
@@ -68,37 +56,28 @@ def calculate_forward_energy_fast(img_array):
         grad_x = np.zeros((height, width), dtype=np.float32)
         grad_y = np.zeros((height, width), dtype=np.float32)
 
-        # Compute gradients
         grad_x[:, 1:] = np.abs(img_array[:, 1:, channel] - img_array[:, :-1, channel])
         grad_y[1:, :] = np.abs(img_array[1:, :, channel] - img_array[:-1, :, channel])
 
-        # Combine gradients with weights
         energy_map += weights[channel] * (grad_x + grad_y)
 
-    print("Forward energy calculation complete.")
     return energy_map
 
-# Optimized seam finding using Numba
 @njit
 def find_vertical_seam_fast(energy_map):
-    """Find vertical seam using dynamic programming and Numba."""
-    print("Finding vertical seam...")
     height, width = energy_map.shape
     dp = np.copy(energy_map)
     backtrack = np.zeros((height, width), dtype=np.int32)
 
-    # Fill DP table
     for i in range(1, height):
         for j in range(width):
             prev_cols = slice(max(0, j - 1), min(width, j + 2))
             min_idx = np.argmin(dp[i - 1, prev_cols])
             min_energy = dp[i - 1, prev_cols][min_idx]
 
-            # Store the relative offset (-1, 0, or 1) in backtrack
             backtrack[i, j] = min_idx - (1 if j > 0 else 0)
             dp[i, j] += min_energy
 
-    # Backtrack to find optimal seam
     seam = np.zeros(height, dtype=np.int32)
     seam[-1] = np.argmin(dp[-1])
 
@@ -106,14 +85,10 @@ def find_vertical_seam_fast(energy_map):
         offset = backtrack[i + 1, seam[i + 1]]
         seam[i] = min(max(seam[i + 1] + offset, 0), width - 1)
 
-    print("Vertical seam found.")
     return seam
 
-# Optimized seam removal using Numba
 @njit
 def remove_seam_fast(img_array, seam):
-    """Remove vertical seam using Numba for speed."""
-    print("Removing vertical seam...")
     height, width, channels = img_array.shape
     new_array = np.zeros((height, width - 1, channels), dtype=img_array.dtype)
 
@@ -121,12 +96,9 @@ def remove_seam_fast(img_array, seam):
         new_array[i, :seam[i]] = img_array[i, :seam[i]]
         new_array[i, seam[i]:] = img_array[i, seam[i] + 1:]
 
-    print("Vertical seam removed.")
     return new_array
 
 def update_energy_map(energy_map, seam):
-    """Update the energy map after removing a seam."""
-    print("Updating energy map...")
     height, width = energy_map.shape
     new_energy_map = np.zeros((height, width - 1))
 
@@ -134,125 +106,82 @@ def update_energy_map(energy_map, seam):
         new_energy_map[i, :seam[i]] = energy_map[i, :seam[i]]
         new_energy_map[i, seam[i]:] = energy_map[i, seam[i] + 1:]
 
-    print("Energy map updated.")
     return new_energy_map
 
 def downscale_image(img_array, scale_factor):
-    """Downscale the image by a given factor while preserving data type."""
-    print(f"Downscaling image with scale factor: {scale_factor}...")
     height, width, _ = img_array.shape
     new_height = int(height * scale_factor)
     new_width = int(width * scale_factor)
     resized_img = (resize(img_array, (new_height, new_width), anti_aliasing=True) * 255).astype(np.uint8)
-    print("Image downscaling complete.")
     return resized_img
 
 def post_process(img_array, start_progress):
-    """Apply post-processing to reduce artifacts and update progress incrementally."""
-    print("Applying post-processing...")
     processed_img = np.zeros_like(img_array, dtype=np.uint8)
-    total_channels = 3  # RGB channels
+    total_channels = 3
     progress = start_progress
 
     for channel in range(total_channels):
-        print(f"Processing channel {channel + 1}/{total_channels}...")
         channel_data = img_array[:, :, channel].astype(np.float32) / 255.0
         processed_channel = restoration.denoise_bilateral(
             channel_data, sigma_color=0.05, sigma_spatial=5, channel_axis=None
         )
         processed_img[:, :, channel] = (processed_channel * 255).astype(np.uint8)
 
-        # Update progress for each channel
         progress = start_progress + ((channel + 1) / total_channels) * (100 - start_progress)
-        print(f"Post-processing progress: {progress:.2f}%")
         socketio.emit('progress', {'progress': progress})
-        socketio.sleep(0)  # Allow other threads to process
+        socketio.sleep(0)
 
-    print("Post-processing complete.")
     return processed_img
-    
+
 def get_image_size(image_bytes):
-    """Get the size of the image in KB or MB from a BytesIO object."""
-    print("Calculating image size...")
-    
-    # Get the size in bytes
     size_in_bytes = image_bytes.getbuffer().nbytes
-    
-    # Convert to KB and MB
     size_in_kb = size_in_bytes / 1024
     size_in_mb = size_in_kb / 1024
-    
-    # Format the size
+
     if size_in_mb >= 1:
         return f"{size_in_mb:.2f} MB"
     return f"{size_in_kb:.2f} KB"
 
-def track_progress(current_step, total_steps):
-    """Track the percentage completion of the compression process."""
-    if total_steps == 0:
-        return 100.0
-    progress = (current_step / total_steps) * 100
-    print(f"Progress: {progress:.2f}%")
-    return progress
-
 def compress_image(image_path, reduction_percentage):
-    """Compress an image using seam carving and downscaling based on the given reduction percentage."""
     try:
-        print(f"Starting image compression for {image_path} with {reduction_percentage}% reduction...")
         img = np.array(Image.open(image_path).convert('RGB'))
         original_height, original_width, _ = img.shape
         target_width = int(original_width * (1 - reduction_percentage / 100))
         
-        # Limit seam removal to 3% of the original width
         max_seams = int(original_width * 0.03)
         num_seams = min(original_width - target_width, max_seams)
         
-        # Calculate downscale factor
         remaining_width = original_width - num_seams
         scale_factor = target_width / remaining_width
         
-        # Define weights for progress tracking
-        seam_removal_weight = 0.5  # 50% of progress
-        downscaling_weight = 0.2   # 20% of progress
-        post_processing_weight = 0.3  # 30% of progress
+        seam_removal_weight = 0.5
+        downscaling_weight = 0.2
+        post_processing_weight = 0.3
 
-        # Initialize progress
         progress = 0.0
 
-        # Remove vertical seams
         energy_map = calculate_forward_energy_fast(img)
         for i in range(num_seams):
             if img.shape[1] <= 2:
-                print("Image width too small to remove more seams.")
                 break
                 
             seam = find_vertical_seam_fast(energy_map)
             img = remove_seam_fast(img, seam)
             energy_map = update_energy_map(energy_map, seam)
             
-            # Update progress for seam removal
             progress = ((i + 1) / num_seams) * seam_removal_weight * 100
-            print(f"Progress after seam removal {i + 1}/{num_seams}: {progress:.2f}%")
             socketio.emit('progress', {'progress': progress})
-            socketio.sleep(0)  # Allow other threads to process
+            socketio.sleep(0)
 
-        # Downscale if necessary
         if scale_factor < 1.0:
-            print(f"Downscaling image with scale factor: {scale_factor}...")
             img = downscale_image(img, scale_factor)
-            # Update progress for downscaling
             progress = (seam_removal_weight + downscaling_weight) * 100
-            print(f"Progress after downscaling: {progress:.2f}%")
             socketio.emit('progress', {'progress': progress})
             socketio.sleep(0)
         
-        # Post-process with incremental progress updates
-        print("Applying post-processing...")
         start_progress = (seam_removal_weight + downscaling_weight) * 100
         img = post_process(img, start_progress)
-        # Final progress update
         progress = 100.0
-        print(f"Progress after post-processing: {progress:.2f}%")
         socketio.emit('progress', {'progress': progress})
         
         final_image = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8))
@@ -264,15 +193,12 @@ def compress_image(image_path, reduction_percentage):
 
 @socketio.on('connect')
 def handle_connect():
-    print("Client connected via WebSocket")
     emit('connected', {'data': 'Connected successfully'})
 
 @socketio.on('disconnect')
 def handle_disconnect():
     print("Client disconnected from WebSocket")
 
-
-    
 @app.route('/compress', methods=['POST'])
 def compress():
     try:
@@ -285,48 +211,35 @@ def compress():
         if not (0 <= reduction_percentage <= 100):
             return jsonify({'error': 'reduction_percentage must be between 0 and 100'}), 400
 
-        # Read the file content once and store it in a variable
         file_content = file.read()
-
-        # Calculate the original size using the stored content
         original_size = get_image_size(BytesIO(file_content))
-
-        # Load the image from the stored content
         img = Image.open(BytesIO(file_content)).convert('RGB')
 
-        # Limit image size to reduce memory usage
         MAX_RESOLUTION = 1024
         if img.width > MAX_RESOLUTION or img.height > MAX_RESOLUTION:
             img.thumbnail((MAX_RESOLUTION, MAX_RESOLUTION))
 
         img_array = np.array(img)
 
-        # Calculate the target dimensions while maintaining aspect ratio
         original_height, original_width, _ = img_array.shape
         target_width = int(original_width * (1 - reduction_percentage / 100))
         aspect_ratio = original_height / original_width
         target_height = int(target_width * aspect_ratio)
 
-        # Resize the image while maintaining aspect ratio
         img_array = resize(img_array, (target_height, target_width), anti_aliasing=True)
         img_array = (img_array * 255).astype(np.uint8)
 
-        # Convert back to image
         compressed_image = Image.fromarray(img_array)
 
-        # Prepare response
         img_io = BytesIO()
         compressed_image.save(img_io, 'JPEG', quality=85)
         img_io.seek(0)
 
-        # Calculate the final size
         final_size = get_image_size(img_io)
 
-        # Cleanup
         del img_array
         gc.collect()
 
-        # Prepare response with headers
         response = send_file(
             img_io,
             mimetype='image/jpeg',
@@ -334,7 +247,6 @@ def compress():
             download_name='compressed_image.jpg'
         )
 
-        # Set headers for final image dimensions and sizes
         response.headers['final-width'] = str(compressed_image.width)
         response.headers['final-height'] = str(compressed_image.height)
         response.headers['original-size'] = original_size
@@ -346,6 +258,5 @@ def compress():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
-    print("Starting Flask app with WebSocket support...")
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, debug=True, host="0.0.0.0", port=port, allow_unsafe_werkzeug=True)
