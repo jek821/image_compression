@@ -174,11 +174,84 @@ onUnmounted(() => {
   }
 });
 
-// Handle file upload
+import EXIF from "exif-js";
+
+// Handle file upload (fixes image rotation issue)
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (!file) return;
 
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    const img = new Image();
+    img.src = e.target.result;
+
+    img.onload = () => {
+      // Read EXIF metadata to check orientation
+      EXIF.getData(file, function () {
+        const orientation = EXIF.getTag(this, "Orientation");
+        console.log("EXIF Orientation:", orientation);
+
+        if (orientation && orientation !== 1) {
+          rotateAndUpload(img, file, orientation);
+        } else {
+          uploadImage(file); // If no rotation needed, upload as is
+        }
+      });
+    };
+  };
+
+  reader.readAsDataURL(file);
+};
+
+// Function to rotate the image correctly before storing it
+const rotateAndUpload = (img, file, orientation) => {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  let width = img.width;
+  let height = img.height;
+
+  // Adjust canvas based on orientation
+  if (orientation === 6 || orientation === 8) {
+    canvas.width = height;
+    canvas.height = width;
+  } else {
+    canvas.width = width;
+    canvas.height = height;
+  }
+
+  // Rotate based on EXIF orientation
+  ctx.save();
+  switch (orientation) {
+    case 3: // 180 degrees
+      ctx.translate(width, height);
+      ctx.rotate(Math.PI);
+      break;
+    case 6: // 90 degrees clockwise
+      ctx.translate(height, 0);
+      ctx.rotate(Math.PI / 2);
+      break;
+    case 8: // 90 degrees counterclockwise
+      ctx.translate(0, width);
+      ctx.rotate(-Math.PI / 2);
+      break;
+    default:
+      break;
+  }
+  ctx.drawImage(img, 0, 0);
+  ctx.restore();
+
+  // Convert to Blob and update file reference
+  canvas.toBlob((blob) => {
+    const rotatedFile = new File([blob], file.name, { type: file.type });
+    uploadImage(rotatedFile);
+  }, file.type);
+};
+
+// Function to update the image state after fixing rotation
+const uploadImage = (file) => {
   imageFile.value = file;
 
   const img = new Image();
