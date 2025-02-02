@@ -174,104 +174,11 @@ onUnmounted(() => {
   }
 });
 
-import EXIF from "exif-js";
-
+// Handle file upload
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (!file) return;
 
-  const reader = new FileReader();
-
-  reader.onload = async (e) => {
-    const img = new Image();
-    img.src = e.target.result;
-
-    img.onload = async () => {
-      try {
-        // Read EXIF metadata
-        let orientation = 1; // Default: No rotation needed
-        const binaryFile = new Uint8Array(e.target.result);
-
-        const exifData = EXIF.readFromBinaryFile(binaryFile);
-        if (exifData && exifData.Orientation) {
-          orientation = exifData.Orientation;
-        }
-
-        console.log("EXIF Orientation:", orientation);
-
-        // If rotation needed, fix it before uploading
-        if (orientation !== 1) {
-          const rotatedFile = await rotateImage(img, file, orientation);
-          uploadImage(rotatedFile);
-        } else {
-          uploadImage(file);
-        }
-      } catch (error) {
-        console.warn("Error processing EXIF data:", error);
-        uploadImage(file); // Proceed without rotation fix
-      }
-    };
-  };
-
-  reader.readAsArrayBuffer(file);
-};
-
-// Function to rotate the image correctly before storing it
-const rotateImage = (img, file, orientation) => {
-  return new Promise((resolve) => {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    let width = img.width;
-    let height = img.height;
-
-    // Adjust canvas based on orientation
-    if (orientation === 6 || orientation === 8) {
-      canvas.width = height;
-      canvas.height = width;
-    } else {
-      canvas.width = width;
-      canvas.height = height;
-    }
-
-    // Rotate based on EXIF orientation
-    ctx.save();
-    switch (orientation) {
-      case 3: // 180 degrees
-        ctx.translate(width, height);
-        ctx.rotate(Math.PI);
-        break;
-      case 6: // 90 degrees clockwise
-        ctx.translate(height, 0);
-        ctx.rotate(Math.PI / 2);
-        break;
-      case 8: // 90 degrees counterclockwise
-        ctx.translate(0, width);
-        ctx.rotate(-Math.PI / 2);
-        break;
-      default:
-        break;
-    }
-    ctx.drawImage(img, 0, 0);
-    ctx.restore();
-
-    // Convert to Blob (or Base64 fallback for mobile)
-    canvas.toBlob((blob) => {
-      if (blob) {
-        resolve(new File([blob], file.name, { type: file.type }));
-      } else {
-        // Fallback for mobile where toBlob() fails
-        const base64 = canvas.toDataURL(file.type);
-        fetch(base64)
-          .then((res) => res.blob())
-          .then((newBlob) => resolve(new File([newBlob], file.name, { type: file.type })));
-      }
-    }, file.type);
-  });
-};
-
-// Function to update the image state after fixing rotation
-const uploadImage = (file) => {
   imageFile.value = file;
 
   const img = new Image();
