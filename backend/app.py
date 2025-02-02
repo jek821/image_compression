@@ -15,9 +15,8 @@ from flask_cors import CORS
 from flask_socketio import SocketIO
 import os
 
-# app = Flask(__name__, static_folder="dist", static_url_path="/")
+app = Flask(__name__, static_folder="dist", static_url_path="/")
 
-app = Flask(__name__)
 
 # Allow all origins in development, restrict in production
 CORS(
@@ -42,7 +41,13 @@ socketio = SocketIO(
     async_mode='gevent',  # Use 'gevent' for async support
 )
 
+@app.route('/')
+def serve_index():
+    return send_from_directory(app.static_folder, 'index.html')
 
+@app.route('/<path:path>')
+def serve_static_files(path):
+    return send_from_directory(app.static_folder, path)
 
 
 

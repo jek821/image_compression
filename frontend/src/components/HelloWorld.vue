@@ -107,10 +107,6 @@
               :disabled="loading"
             />
           </div>
-          <!-- Warning Message -->
-          <div v-if="compressionPercentage < 60" class="warning-message">
-            ⚠️ Warning: Compression below 60% may cause significant distortion.
-          </div>
           <!-- Compression Button -->
           <button class="compress-button" @click="handleCompressImage" :disabled="loading">
             {{ loading ? "Compressing..." : "Compress Image" }}
@@ -118,6 +114,9 @@
           <!-- Progress Bar -->
           <div v-if="loading" class="progress-bar-container">
             <div class="progress-bar" :style="{ width: progress + '%' }"></div>
+          </div>
+          <div v-if="showResizeWarning" class="warning-message">
+            ⚠️ Your image must be automatically resized to a 1024 pixels at most to reduce memory usage. This helps us manage hosting costs and ensure smooth processing.
           </div>
         </div>
 
@@ -153,6 +152,7 @@ const progress = ref(0);
 const socket = ref(null);
 const originalSize = ref(null);
 const compressedSize = ref(null);
+const showResizeWarning = ref(false);
 
 // Maximum allowed dimensions for the compressed image
 const MAX_WIDTH = 800; // Adjust as needed
@@ -200,20 +200,30 @@ const updateCompressedDimensions = () => {
   let newWidth = Math.round(originalWidth.value * scaleFactor);
   let newHeight = Math.round(originalHeight.value * scaleFactor);
 
-  // Ensure the aspect ratio is preserved
-  const aspectRatio = originalWidth.value / originalHeight.value;
+  // Cap dimensions to the maximum resolution
+  const maxResolution = 1024; // Match this with your backend's MAX_RESOLUTION
+  if (newWidth > maxResolution || newHeight > maxResolution) {
+    showResizeWarning.value = true;
+    const aspectRatio = originalWidth.value / originalHeight.value;
+    if (newWidth > newHeight) {
+      newWidth = maxResolution;
+      newHeight = Math.round(maxResolution / aspectRatio);
+    } else {
+      newHeight = maxResolution;
+      newWidth = Math.round(maxResolution * aspectRatio);
+    }
+  }
 
   // Update the compressed dimensions
   compressedWidth.value = newWidth;
   compressedHeight.value = newHeight;
 };
-
 // Watch for compression percentage changes
 watch(compressionPercentage, updateCompressedDimensions);
 
 // Compress image using the API
 const handleCompressImage = async () => {
-  if (!imageFile.value || loading.value) return; 
+  if (!imageFile.value || loading.value) return;
 
   loading.value = true;
   progress.value = 0;
@@ -224,21 +234,21 @@ const handleCompressImage = async () => {
     const backendCompressionValue = 100 - compressionPercentage.value;
     const response = await apiService.compressImage(imageFile.value, backendCompressionValue);
 
-    // ✅ Create a Blob from the response
+    // Create a Blob from the response
     const blob = new Blob([response.data], { type: imageFile.value.type });
     const url = URL.createObjectURL(blob);
     compressedImageUrl.value = url;
 
-    // ✅ Try accessing headers safely
+    // Access headers safely
     const headers = response.headers;
     console.log("Response Headers:", headers);
 
+    // Update dimensions and sizes
     compressedWidth.value = headers.get("final-width") || headers["final-width"];
     compressedHeight.value = headers.get("final-height") || headers["final-height"];
     originalSize.value = headers.get("original-size") || headers["original-size"];
     compressedSize.value = headers.get("final-size") || headers["final-size"];
 
-    console.log("Original size header:", originalSize.value);
   } catch (error) {
     console.error("Error compressing image:", error.response?.data || error.message);
   } finally {
