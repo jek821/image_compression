@@ -5,7 +5,7 @@
       <h1>Image Compression by Seam Carving</h1>
     </header>
 
-    <div class="main">
+     <div class="main">
         <!-- Upload Section -->
         <div class="upload-section card">
           <h2>Upload an Image</h2>
@@ -17,7 +17,6 @@
           </div>
 
         <div>
-          <input type="file" @change="handleFileUpload" accept="image/*" />
           <p v-if="isMobile" class="mobile-warning">
             For the best experience, please upload images from your camera roll instead of taking a new photo.
           </p>
