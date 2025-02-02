@@ -183,12 +183,6 @@ onUnmounted(() => {
 });
 
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-const imageFile = ref(null);
-const originalWidth = ref(0);
-const originalHeight = ref(0);
-const imageUploaded = ref(false);
-const originalSize = ref(0);
-const compressedSize = ref(0);
 
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
@@ -240,6 +234,7 @@ const updateCompressedDimensions = () => {
   compressedWidth.value = newWidth;
   compressedHeight.value = newHeight;
 };
+
 // Watch for compression percentage changes
 watch(compressionPercentage, updateCompressedDimensions);
 
@@ -278,7 +273,6 @@ const handleCompressImage = async () => {
   }
 };
 
-
 const downloadCompressedImage = () => {
   if (!compressedImageUrl.value) return;
 
@@ -292,7 +286,6 @@ const downloadCompressedImage = () => {
 };
 
 </script>
-
 
 <style scoped>
 body {
