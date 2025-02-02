@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "cd ../backend && pipenv install --deploy --ignore-pipfile && cd ..",
+    "build": "cdbackend && pipenv install --deploy --ignore-pipfile && cd ..",
     "start": "cd backend && pipenv run gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 app:app"
   },
   "keywords": [],
