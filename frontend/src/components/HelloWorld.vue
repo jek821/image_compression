@@ -182,37 +182,38 @@ onUnmounted(() => {
   }
 });
 
-export default {
-  data() {
-    return {
-      isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
-    };
-  },
-  methods: {
-    handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
+import { ref } from 'vue';
 
-      // Use the original file without EXIF or canvas manipulation
-      imageFile.value = file;
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const imageFile = ref(null);
+const originalWidth = ref(0);
+const originalHeight = ref(0);
+const imageUploaded = ref(false);
+const originalSize = ref(0);
+const compressedSize = ref(0);
 
-      const img = new Image();
-      img.src = URL.createObjectURL(file);
+const handleFileUpload = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
 
-      img.onload = () => {
-        originalWidth.value = img.width;
-        originalHeight.value = img.height;
-        imageUploaded.value = true;
-        originalSize.value = 0;
-        compressedSize.value = 0;
-        updateCompressedDimensions();
-      };
+  // Use the original file without EXIF or canvas manipulation
+  imageFile.value = file;
 
-      img.onerror = (error) => {
-        console.error('Failed to load image:', error); // Debugging
-      };
-    },
-  },
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
+
+  img.onload = () => {
+    originalWidth.value = img.width;
+    originalHeight.value = img.height;
+    imageUploaded.value = true;
+    originalSize.value = 0;
+    compressedSize.value = 0;
+    updateCompressedDimensions();
+  };
+
+  img.onerror = (error) => {
+    console.error('Failed to load image:', error); // Debugging
+  };
 };
 
 // Update dimensions when compression percentage changes
