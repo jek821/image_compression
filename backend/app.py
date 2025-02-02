@@ -285,13 +285,24 @@ def compress():
         if not (0 <= reduction_percentage <= 100):
             return jsonify({'error': 'reduction_percentage must be between 0 and 100'}), 400
 
-        # Load image directly into memory
-        img = Image.open(file.stream).convert('RGB')
+        # Read the file content once and store it in a variable
+        file_content = file.read()
+
+        # Calculate the original size using the stored content
+        original_size = get_image_size(BytesIO(file_content))
+
+        # Load the image from the stored content
+        img = Image.open(BytesIO(file_content)).convert('RGB')
         img_array = np.array(img)
 
-        # Perform compression (this is a simplified example)
-        target_width = int(img_array.shape[1] * (1 - reduction_percentage / 100))
-        img_array = resize(img_array, (img_array.shape[0], target_width), anti_aliasing=True)
+        # Calculate the target dimensions while maintaining aspect ratio
+        original_height, original_width, _ = img_array.shape
+        target_width = int(original_width * (1 - reduction_percentage / 100))
+        aspect_ratio = original_height / original_width
+        target_height = int(target_width * aspect_ratio)
+
+        # Resize the image while maintaining aspect ratio
+        img_array = resize(img_array, (target_height, target_width), anti_aliasing=True)
         img_array = (img_array * 255).astype(np.uint8)
 
         # Convert back to image
@@ -302,8 +313,7 @@ def compress():
         compressed_image.save(img_io, 'JPEG', quality=85)
         img_io.seek(0)
 
-        # Calculate sizes
-        original_size = get_image_size(BytesIO(file.read()))  # Read the file content again for size calculation
+        # Calculate the final size
         final_size = get_image_size(img_io)
 
         # Cleanup
